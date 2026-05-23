@@ -1,4 +1,3 @@
-// deploy_simple.js - Works with PortalDot
 const { ApiPromise, WsProvider } = require('@polkadot/api');
 const { Keyring } = require('@polkadot/keyring');
 const fs = require('fs');

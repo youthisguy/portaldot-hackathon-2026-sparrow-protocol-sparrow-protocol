@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-# deploy_portaldot_fixed.py - Following Discord advice for your version
-
 import os
 import json
 import time
