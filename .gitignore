@@ -1,0 +1,16 @@
+# Node
+node_modules/
+npm-debug.log
+
+# Rust build artifacts
+target/
+*.wasm
+
+# Binary
+substrate-contracts-node-mac/
+scn.tar.gz
+portaldot-testnet-macos.tar.gz
+portaldot-testnet-macos/
+
+# Cargo lock files (optional but keeps repo clean)
+# Cargo.lock
