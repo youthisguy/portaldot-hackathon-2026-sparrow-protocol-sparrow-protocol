@@ -10,19 +10,24 @@ const WS_ENDPOINT = "ws://127.0.0.1:9944";
 const UNIT = 1_000_000_000_000n;
 
 function formatUnit(pico: bigint | string | number): string {
-  const val = BigInt(pico.toString());
-  const whole = val / UNIT;
-  const frac = (val % UNIT) * 1000n / UNIT;
-  return `${whole}.${frac.toString().padStart(3, "0")}`;
+  try {
+    const val = BigInt(pico.toString());
+    const whole = val / UNIT;
+    const frac = (val % UNIT) * 1000n / UNIT;
+    return `${whole}.${frac.toString().padStart(3, '0')}`;
+  } catch {
+    return "0.000";
+  }
 }
 
 function toUnit(amount: string): bigint {
+  if (!amount) return 0n;
   const n = parseFloat(amount);
   if (isNaN(n) || n <= 0) return 0n;
-  return BigInt(Math.floor(n * 1e12));
+  return BigInt(Math.floor(n * 1_000_000_000_000));
 }
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ─── Types -->────────────────
 type ToastType = "success" | "error" | "info";
 interface Toast { id: number; msg: string; type: ToastType; }
 interface PoolStats {
@@ -43,7 +48,7 @@ interface Position {
   healthFactor: string;
 }
 
-// ─── Main Component ───────────────────────────────────────────────────────────
+// ─── Main Component -->───────
 export default function Home() {
   // Connection state
   const [api, setApi] = useState<any>(null);
@@ -81,7 +86,7 @@ export default function Home() {
   const [currentPrice, setCurrentPrice] = useState("1.000");
   const [mockPrice, setMockPrice] = useState("");
 
-  // ── Toast helpers ──────────────────────────────────────────────────────────
+  // ── Toast helpers -->──────
   const addToast = useCallback((msg: string, type: ToastType = "info") => {
     const id = ++toastId.current;
     setToasts((t) => [...t, { id, msg, type }]);
@@ -120,118 +125,113 @@ export default function Home() {
     setConnecting(false);
   }, [addToast]);
 
-  // ── Load on-chain data ────────────────────────────────────────────────────
-  const refreshData = useCallback(async () => {
-    if (!api || !selectedAccount) return;
+
+const refreshData = useCallback(async () => {
+  if (!api || !selectedAccount) return;
+
+  const addr = selectedAccount.address;
+  console.log("🔄 Refreshing data for:", addr);
+
+  try {
+    const lend = await loadContract(api, SPARROWLEND_ADDRESS, "sparrowlend");
+    const margin = await loadContract(api, SPARROWMARGIN_ADDRESS, "sparrowmargin");
+
+    const opts = { 
+      gasLimit: api.registry.createType("WeightV2", { 
+        refTime: 40_000_000_000n, 
+        proofSize: 524288n 
+      }) 
+    };
+
+    // ── Pool Stats ─────────────────────────────────────
     try {
-      const { ContractPromise } = await import("@polkadot/api-contract");
+      const result = await lend.query.getPoolStats(addr, opts);
+      if (result?.result.isOk && result.output) {
+        const raw = (result.output as any).toJSON();
+        const data = raw?.ok || raw;
+        const [avail, tvl, util, rate, apy] = Array.isArray(data) ? data : [];
 
-      // Minimal ABIs (selectors only — ink! 4.x selector = first 4 bytes of blake2 of "method_name")
-      // We use ink_selector to call view functions as RPC queries
-      const lend = await loadContract(api, SPARROWLEND_ADDRESS, "sparrowlend");
-      const margin = await loadContract(api, SPARROWMARGIN_ADDRESS, "sparrowmargin");
- 
-
-      const addr = selectedAccount.address;
-      const opts = { gasLimit: api.registry.createType("WeightV2", { refTime: 10_000_000_000n, proofSize: 262144n }) };
-
-      // Pool stats
-      try {
-        const r = await lend.query.getPoolStats(addr, opts);
-        if (r.result.isOk && r.output) {
-          const [avail, tvl, util, rate, apy] = (r.output as any).toJSON() as any[];
-          setPoolStats({
-            availableLiquidity: formatUnit(BigInt(avail?.toString() || "0")),
-            tvl: formatUnit(BigInt(tvl?.toString() || "0")),
-            utilization: Number(util || 0),
-            borrowRate: Number(rate || 0) / 100,
-            supplyApy: Number(apy || 0) / 100,
-          });
-        }
-      } catch {}
-
-      // Lender position
-      try {
-        const r = await lend.query.getLenderPosition(addr, opts, addr);
-        if (r.result.isOk && r.output) {
-          const [shares, val, pending] = (r.output as any).toJSON() as any[];
-          setLenderShares(shares?.toString() || "0");
-          setLenderValue(formatUnit(BigInt(val?.toString() || "0")));
-          setPendingYield(formatUnit(BigInt(pending?.toString() || "0")));
-        }
-      } catch {}
-
-      // Free collateral
-      try {
-        const r = await margin.query.getFreeCollateral(addr, opts, addr);
-        if (r.result.isOk && r.output) {
-          setFreeCollateral(formatUnit(BigInt((r.output as any).toJSON()?.toString() || "0")));
-        }
-      } catch {}
-
-      // Current price
-      try {
-        const r = await margin.query.getCurrentPrice(addr, opts);
-        if (r.result.isOk && r.output) {
-          setCurrentPrice(formatUnit(BigInt((r.output as any).toJSON()?.toString() || "0")));
-        }
-      } catch {}
-
-      // User positions
-      try {
-        const r = await margin.query.getUserPositions(addr, opts, addr);
-        if (r.result.isOk && r.output) {
-          const ids: number[] = (r.output as any).toJSON() as number[];
-          const posData: Position[] = [];
-          for (const id of ids.slice(0, 10)) {
-            try {
-              const pr = await margin.query.getPosition(addr, opts, id);
-              if (pr.result.isOk && pr.output) {
-                const p = (pr.output as any).toJSON() as any;
-                if (!p) continue;
-                const [pid, , dir, collateral, borrowed, lev, entryPrice, , isActive] = Array.isArray(p) ? p : Object.values(p);
-                const hfr = await margin.query.getHealthFactor(addr, opts, id);
-                const hf = hfr.result.isOk ? (hfr.output as any).toJSON()?.toString() || "∞" : "∞";
-                posData.push({
-                  id: Number(pid || id),
-                  direction: dir === 0 ? "Long" : "Short",
-                  collateral: formatUnit(BigInt(collateral?.toString() || "0")),
-                  borrowed: formatUnit(BigInt(borrowed?.toString() || "0")),
-                  leverage: Number(lev || 100) / 100,
-                  entryPrice: formatUnit(BigInt(entryPrice?.toString() || "0")),
-                  isActive: Boolean(isActive),
-                  healthFactor: hf === "4294967295" ? "∞" : hf,
-                });
-              }
-            } catch {}
-          }
-          setPositions(posData.filter((p) => p.isActive));
-        }
-      } catch {}
-
-      // Native balance
-      try {
-        const accountData = await api.query.system.account(addr);
-        const free = accountData.data.free;         
-        const frozen = accountData.data.frozen || 0n; 
-        const reserved = accountData.data.reserved || 0n;
-      
-        console.log("🔍 Raw balance data:", {
-          free: free.toString(),
-          reserved: reserved.toString(),
-          total: (BigInt(free) + BigInt(reserved)).toString()
+        setPoolStats({
+          availableLiquidity: formatUnit(BigInt(avail || 0)),
+          tvl: formatUnit(BigInt(tvl || 0)),
+          utilization: Number(util || 0),
+          borrowRate: Number(rate || 0) / 100,
+          supplyApy: Number(apy || 0) / 100,
         });
-      
-        setBalance(formatUnit(free));
-      } catch (e) {
-        console.error("Balance query failed:", e);
-        setBalance("0.000");
       }
+    } catch (e) { console.error("Pool stats failed:", e); }
 
-    } catch (err: any) {
-      console.error("Refresh error", err);
+    // ── Lender Position (Fixed Hex Shares) ─────────────────────────────────────
+    try {
+      const result = await lend.query.getLenderPosition(addr, opts, addr);
+      if (result?.result.isOk && result.output) {
+        const raw = (result.output as any).toJSON();
+        const data = raw?.ok || raw;
+        const [sharesRaw, val, pending] = Array.isArray(data) ? data : [];
+
+        // Handle shares properly (could be hex or BigInt)
+        let shares = "0";
+        if (sharesRaw) {
+          if (typeof sharesRaw === 'string' && sharesRaw.startsWith('0x')) {
+            shares = BigInt(sharesRaw).toString();
+          } else {
+            shares = sharesRaw.toString();
+          }
+        }
+
+        setLenderShares(shares);
+        setLenderValue(formatUnit(BigInt(val || 0)));
+        setPendingYield(formatUnit(BigInt(pending || 0)));
+      }
+    } catch (e) { 
+      console.error("Lender position failed:", e); 
     }
-  }, [api, selectedAccount]);
+
+    // ── Free Collateral (Fixed) ─────────────────────────────────────
+    try {
+      const result = await margin.query.getFreeCollateral(addr, opts, addr);
+      if (result?.result.isOk && result.output) {
+        const raw = (result.output as any).toJSON();
+        let value = raw?.ok || raw;
+
+        // Handle possible object wrapper
+        if (value && typeof value === 'object' && !Array.isArray(value)) {
+          value = value.ok || value.value || Object.values(value)[0];
+        }
+
+        setFreeCollateral(formatUnit(BigInt(value || 0)));
+      }
+    } catch (e) { 
+      console.warn("Free collateral failed:", e); 
+    }
+
+    // ── Current Price ─────────────────────────────────────
+    try {
+      const result = await margin.query.getCurrentPrice(addr, opts);
+      if (result?.result.isOk && result.output) {
+        const raw = (result.output as any).toJSON();
+        let value = raw?.ok || raw;
+        if (value && typeof value === 'object') value = value.ok || Object.values(value)[0];
+
+        setCurrentPrice(formatUnit(BigInt(value || 0)));
+      }
+    } catch (e) { 
+      console.warn("Price failed:", e); 
+    }
+
+    // ── Native Balance ─────────────────────────────────────
+    try {
+      const accountData = await api.query.system.account(addr);
+      setBalance(formatUnit(accountData.data.free));
+    } catch (e) { 
+      console.error("Balance failed:", e); 
+    }
+
+  } catch (err) {
+    console.error("❌ Major refresh error:", err);
+  }
+}, [api, selectedAccount]);
+
 
   useEffect(() => {
     if (connected) {
@@ -241,7 +241,7 @@ export default function Home() {
     }
   }, [connected, refreshData]);
 
-// ── Contract TX helper ────────────────────────────────────────────────────
+// ── Contract TX helper -->
 const sendTx = useCallback(
   async (method: "lend" | "margin", fn: string, args: any[], value: bigint = 0n, label = fn) => {
     if (!api || !selectedAccount) return;
@@ -301,67 +301,71 @@ const sendTx = useCallback(
   [api, selectedAccount, addToast, refreshData]
 );
 
-  // ── Action handlers ───────────────────────────────────────────────────────
+  // ── Action handlers -->───
   const handleDeposit = () => {
     const amt = toUnit(depositAmt);
     if (!amt) return addToast("Enter deposit amount", "error");
     sendTx("lend", "deposit", [], amt, "deposit");
   };
-
+  
   const handleWithdraw = () => {
     const shares = BigInt(withdrawShares || "0");
     if (!shares) return addToast("Enter shares to withdraw", "error");
     sendTx("lend", "withdraw", [shares.toString()], 0n, "withdraw");
   };
-
+  
   const handleHarvestYield = () => {
-    sendTx("lend", "harvestYield", [], 0n, "harvest yield");
+    sendTx("lend", "harvest_yield", [], 0n, "harvest yield");
   };
-
+  
   const handleFixedDeposit = () => {
     const amt = toUnit(fixedAmt);
     const blocks = parseInt(fixedBlocks);
     if (!amt) return addToast("Enter deposit amount", "error");
     if (blocks < 200) return addToast("Min lock is 200 blocks", "error");
-    sendTx("lend", "depositFixed", [blocks], amt, "fixed deposit");
+    sendTx("lend", "deposit_fixed", [blocks], amt, "fixed deposit");
   };
-
+  
   const handleWithdrawFixed = () => {
-    sendTx("lend", "withdrawFixed", [], 0n, "withdraw fixed");
+    sendTx("lend", "withdraw_fixed", [], 0n, "withdraw fixed");
   };
-
+  
   const handleDepositCollateral = () => {
     const amt = toUnit(collateralAmt);
     if (!amt) return addToast("Enter collateral amount", "error");
-    sendTx("margin", "depositCollateral", [], amt, "deposit collateral");
+    sendTx("margin", "deposit_collateral", [], amt, "deposit collateral");
   };
-
+  
   const handleOpenPosition = () => {
     const colAmt = toUnit(posCollateral);
     if (!colAmt) return addToast("Enter collateral for position", "error");
-    const direction = { Long: { Long: null }, Short: { Short: null } }[posDirection];
-    sendTx("margin", "openPosition", [direction, posLeverage, colAmt.toString()], 0n, `open ${posDirection} ${posLeverage / 100}x`);
+  
+    const direction = posDirection === "Long" 
+      ? { Long: null } 
+      : { Short: null };
+  
+    sendTx("margin", "open_position", [direction, posLeverage, colAmt.toString()], 0n, `open ${posDirection} ${posLeverage/100}x`);
   };
-
+  
   const handleClosePosition = (id: number) => {
-    sendTx("margin", "closePosition", [id], 0n, `close position #${id}`);
+    sendTx("margin", "close_position", [id], 0n, `close position #${id}`);
   };
-
+  
   const handleLiquidate = (id: number) => {
     sendTx("margin", "liquidate", [id], 0n, `liquidate #${id}`);
   };
-
+  
   const handleSetMockPrice = () => {
     const p = toUnit(mockPrice);
     if (!p) return addToast("Enter price", "error");
-    sendTx("margin", "setMockPrice", [p.toString()], 0n, "set price");
+    sendTx("margin", "set_mock_price", [p.toString()], 0n, "set price");
   };
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // -->─────────────────────
   const utilPct = poolStats?.utilization ?? 0;
   const utilClass = utilPct > 90 ? "danger" : utilPct > 70 ? "warn" : "";
 
-  // ── Render ────────────────────────────────────────────────────────────────
+ 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg-primary)", display: "flex", flexDirection: "column" }}>
       {/* ── HEADER ── */}
@@ -435,7 +439,7 @@ const sendTx = useCallback(
       </header>
 
       {!connected ? (
-        // ── LANDING ──────────────────────────────────────────────────────────
+        // ── LANDING -->──────
         <div style={{
           flex: 1,
           display: "flex",
@@ -517,7 +521,7 @@ const sendTx = useCallback(
           </div>
         </div>
       ) : (
-        // ── DASHBOARD ─────────────────────────────────────────────────────────
+        // ── DASHBOARD -->─────
         <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "20px 24px", gap: 20, maxWidth: 1200, width: "100%", margin: "0 auto" }}>
 
           {/* ── POOL STATS BAR ── */}
@@ -895,18 +899,30 @@ const sendTx = useCallback(
 }
 
 // load contract metedata 
+// Improved loadContract with debugging
 const loadContract = async (api: any, address: string, contractName: string) => {
   try {
+    console.log(`📂 Loading contract: ${contractName} from /contracts/${contractName}.contract`);
+
     const response = await fetch(`/contracts/${contractName}.contract`);
     if (!response.ok) {
-      throw new Error(`Failed to fetch ${contractName}.contract`);
+      throw new Error(`Failed to fetch ${contractName}.contract - Status: ${response.status}`);
     }
+
     const contractJson = await response.json();
+    console.log(`✅ Loaded ${contractName}.contract successfully`);
+    console.log(`📋 Available messages:`, Object.keys(contractJson?.V3?.spec?.messages || {}));
 
     const { ContractPromise } = await import("@polkadot/api-contract");
-    return new ContractPromise(api, contractJson, address);
+    const contract = new ContractPromise(api, contractJson, address);
+
+    // Debug: Show available query methods
+    console.log(`🔍 Available query methods on ${contractName}:`, 
+      Object.keys(contract.query || {}));
+
+    return contract;
   } catch (err: any) {
-    console.error(`Failed to load ${contractName} contract:`, err);
+    console.error(`❌ Failed to load ${contractName} contract:`, err.message || err);
     throw err;
   }
 };
