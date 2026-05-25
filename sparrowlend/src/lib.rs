@@ -134,9 +134,6 @@ mod sparrowlend {
                 blocks_per_year: 2_628_000,
             }
         }
-
-        // Rest of your code remains exactly the same...
-        // (all the method implementations stay unchanged)
         
         // ── Admin ─────────────────────────────────────────────────────────────
 

@@ -130,8 +130,8 @@ cargo install cargo-contract --force
 **1. Clone the repository**
 
 ```bash
-git clone <repository-url>
-cd portaldot-hackathon-2026-sparrow-protocol-sparrow-protocol
+git clone https://github.com/youthisguy/portaldot-hackathon-2026-sparrow-protocol-sparrow-protocol
+
 ```
 
 **2. Start the local node**
@@ -197,31 +197,13 @@ cargo contract call \
 ```bash
 cd sparrowlend
 cargo test
-# 30+ unit tests covering all core flows
 ```
 
 ---
 
 ## Demo
 
-### Demo Scene
-
-Alice starts the local substrate-contracts-node, deploys both contracts, links them, and runs the full lending + margin trading flow in 9 CLI steps in under 90 seconds. All contracts are live onchain, cross-contract linked, and callable via `cargo contract`.
-
-### Confirmed Onchain Transactions
-
-| # | Action | Gas Fee | Event |
-|---|--------|---------|-------|
-| 1 | Deploy SparrowLend | 2.473 mUNIT | `Instantiated` |
-| 2 | Deploy SparrowMargin | 2.662 mUNIT | `Instantiated` |
-| 3 | set_margin_contract | 1.132 mUNIT | `MarginContractSet` |
-| 4 | deposit (10 UNIT) | 1.755 mUNIT | `Deposited { shares_minted: 1000000000000 }` |
-| 5 | deposit_collateral (5 UNIT) | 1.513 mUNIT | `CollateralDeposited { amount: 5000000000000 }` |
-| 6 | open_position (Long 1x) | 2.556 mUNIT | `PositionOpened { position_id: 1, entry_price: 1000000 }` |
-| 7 | get_health_factor(1) | — | `Ok(4294967295)` = u32::MAX (fully healthy) |
-| 8 | close_position(1) | 1.690 mUNIT | `PositionClosed { payout: 1 UNIT }` |
-
-### Full Demo CLI Flow
+### Demo CLI Flow
 
 ```bash
 # Deposit into lending pool
