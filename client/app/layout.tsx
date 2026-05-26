@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
  
 export const metadata: Metadata = {
-  title: "Sparrow Protocol: Yield Layer on Portaldot",
-  description: "Isolated margin trading and money market on Substrate/ink!",
+  title: "Sparrow Protocol | Yield Layer on Portaldot",
+  description: "Isolated margin trading and money market on Portaldot",
 };
  
 export default function RootLayout({

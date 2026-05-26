@@ -162,7 +162,7 @@ cargo contract instantiate \
   --suri //Alice \
   --url ws://127.0.0.1:9944 \
   --execute
-# Note the printed contract address → <SPARROWLEND_ADDRESS>
+# Note the printed contract address → 5EiRyzh5RK6GtPRNhJszYDM9JcsyAhNYqUc4bdaQSvGxc4nP
 ```
 
 **5. Deploy SparrowMargin**
@@ -172,11 +172,11 @@ cd ../sparrowmargin
 cargo contract instantiate \
   target/ink/sparrowmargin.contract \
   --constructor new \
-  --args <SPARROWLEND_ADDRESS> 1000000 \
+  --args 5EiRyzh5RK6GtPRNhJszYDM9JcsyAhNYqUc4bdaQSvGxc4nP 1000000 \
   --suri //Alice \
   --url ws://127.0.0.1:9944 \
   --execute
-# Note the printed contract address → <SPARROWMARGIN_ADDRESS>
+# Replace args the actual contract address plus initial mock price
 ```
 
 **6. Link the contracts**
@@ -184,9 +184,9 @@ cargo contract instantiate \
 ```bash
 cd ../sparrowlend
 cargo contract call \
-  --contract <SPARROWLEND_ADDRESS> \
+  --contract 5EiRyzh5RK6GtPRNhJszYDM9JcsyAhNYqUc4bdaQSvGxc4nP \
   --message set_margin_contract \
-  --args <SPARROWMARGIN_ADDRESS> \
+  --args 5D3cq4kYqACT721DftgJGG7XKam8gZHGM6RAtfqwV729jPzy \
   --suri //Alice \
   --url ws://127.0.0.1:9944 \
   --execute
@@ -250,15 +250,6 @@ cargo contract call \
   --url ws://127.0.0.1:9944 \
   --execute
 ```
-
-### What Is Mocked
-
-| Item | Notes |
-|---|---|
-| Price oracle | `set_mock_price` admin call — clearly labeled, no external dependency |
-| Asset tokens | Native UNIT balance used directly — no wrapped tokens |
-| Frontend | Not built — terminal CLI demo only |
-
 ---
 
 ## Roadmap
