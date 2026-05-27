@@ -176,7 +176,7 @@ cargo contract instantiate \
   --suri //Alice \
   --url ws://127.0.0.1:9944 \
   --execute
-# Replace args the actual contract address plus initial mock price
+# Replace args the actual contract address 
 ```
 
 **6. Link the contracts**

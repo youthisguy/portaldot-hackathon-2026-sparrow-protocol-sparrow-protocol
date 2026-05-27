@@ -367,3 +367,361 @@ tr:hover td { background: var(--bg-elevated); color: var(--text-primary); }
 }
 .util-fill.warn { background: var(--accent-amber); }
 .util-fill.danger { background: var(--accent-red); }
+
+/* Trade page two-column shell */
+.trade-layout {
+  display: flex;
+  flex: 1;
+  height: calc(100vh - 52px); 
+  overflow: hidden;
+}
+
+.trade-left {
+  width: 640px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+}
+
+.trade-right {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Lend page layout */
+.lend-layout {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.lend-stats-bar {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+}
+
+.lend-stat-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px 16px;
+}
+
+.lend-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+/* Trade page shell */
+.trade-layout {
+  display: flex;
+  flex: 1;
+  height: calc(100vh - 52px);
+  overflow: hidden;
+}
+.trade-left {
+  width: 640px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+}
+.trade-right {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Lend page shell */
+.lend-layout {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.lend-stats-bar {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+}
+.lend-stat-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px 16px;
+}
+.lend-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+
+/* ─── RightPanel landing styles ──────────────────────────────────────────── */
+
+.right-panel-landing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 36px;
+  padding: 48px 40px;
+  min-height: 100%;
+  text-align: center;
+}
+
+.landing-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  max-width: 480px;
+}
+
+.landing-title {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 36px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.2;
+  margin: 0;
+}
+
+.landing-title-accent {
+  color: var(--accent-amber);
+}
+
+.landing-subtitle {
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.75;
+  margin: 0;
+}
+
+.landing-connect-btn {
+  padding: 12px 32px;
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+.landing-node-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: "IBM Plex Mono", monospace;
+}
+
+/* Feature cards */
+.landing-features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  width: 100%;
+  max-width: 560px;
+}
+
+.landing-feature-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 18px 16px;
+  text-align: left;
+  transition: border-color 0.15s;
+}
+
+.landing-feature-card:hover {
+  border-color: var(--border-bright);
+}
+
+.feature-icon {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.feature-title {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+  letter-spacing: 0.02em;
+}
+
+.feature-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.65;
+}
+
+/* Contract addresses */
+.landing-contracts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  width: 100%;
+  max-width: 560px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px 20px;
+  text-align: left;
+}
+
+.contract-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.contract-addr {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+
+/* ─── Header ─────────────────────────────────────────────────────────────── */
+
+.header {
+  height: 52px;
+  padding: 0 24px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Logo */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.logo-mark {
+  font-size: 18px;
+  color: var(--accent-amber);
+  line-height: 1;
+}
+
+.logo-text {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 0.02em;
+}
+
+/* Nav links */
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.nav-link {
+  padding: 6px 14px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  text-decoration: none;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.nav-link:hover {
+  color: var(--text-secondary);
+  background: var(--bg-elevated);
+}
+
+.nav-link.active {
+  color: var(--accent-amber);
+  background: var(--accent-amber-dim);
+}
+
+/* Balance display */
+.balance-display {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+}
+
+.balance-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.balance-value {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent-amber);
+}
+
+/* Account select */
+.account-select {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  padding: 5px 10px;
+  border-radius: 4px;
+  max-width: 160px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.account-select:hover,
+.account-select:focus {
+  border-color: var(--border-bright);
+}
+
+/* Connected indicator */
+.connected-indicator {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-elevated);
+}
+
+.connected-text {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 0.03em;
+}
