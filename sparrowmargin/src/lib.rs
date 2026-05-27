@@ -305,13 +305,15 @@ mod sparrowmargin {
             let mut pos = self.positions.get(position_id).expect("Position not found");
             assert!(pos.is_active, "Position already closed");
             assert!(pos.owner == caller, "Not your position");
-
+        
             let (pnl_amount, is_profit) = self.calc_pnl(&pos);
             let interest = self.calc_borrow_interest(&pos);
+        
             let position_size = pos.collateral
                 .checked_add(pos.borrowed)
                 .expect("Size overflow");
-
+        
+            // Calculate final payout: collateral + pnl - interest
             let payout = if is_profit {
                 pos.collateral
                     .saturating_add(pnl_amount)
@@ -321,27 +323,36 @@ mod sparrowmargin {
                     .saturating_sub(pnl_amount)
                     .saturating_sub(interest)
             };
-
+        
             let repay_amount = pos.borrowed
                 .checked_add(interest)
                 .expect("Repay overflow");
-
+        
+            // Repay debt to SparrowLend
             if pos.borrowed > 0 {
                 self.call_repay_for(pos.borrowed, repay_amount);
             }
-
+        
+            // Update open interest
             match pos.direction {
                 Direction::Long => self.long_open_interest = self.long_open_interest.saturating_sub(position_size),
                 Direction::Short => self.short_open_interest = self.short_open_interest.saturating_sub(position_size),
             }
-
+        
             pos.is_active = false;
             self.positions.insert(position_id, &pos);
-
+ 
             if payout > 0 {
                 self.env().transfer(caller, payout).expect("Payout failed");
             }
-
+        
+            // Return any leftover collateral to free_collateral
+            let collateral_to_return = pos.collateral.saturating_sub(interest);
+            if collateral_to_return > 0 {
+                let current_free = self.free_collateral.get(caller).unwrap_or(0);
+                self.free_collateral.insert(caller, &(current_free + collateral_to_return));
+            }
+        
             self.env().emit_event(PositionClosed {
                 position_id,
                 owner: caller,
@@ -459,50 +470,38 @@ mod sparrowmargin {
             let size = pos.collateral
                 .checked_add(pos.borrowed)
                 .expect("Size overflow");
-
+        
             let entry = pos.entry_price;
             let current = self.current_price;
-
-            if entry == 0 {
+        
+            if entry == 0 || size == 0 {
                 return (0, true);
             }
-
+        
             match pos.direction {
                 Direction::Long => {
                     if current >= entry {
-                        let diff = current.checked_sub(entry).expect("Diff underflow");
-                        let pnl = size
-                            .checked_mul(diff)
-                            .expect("PnL mul overflow")
-                            .checked_div(entry)
-                            .expect("PnL div error");
+                        // Long profit
+                        let diff = current - entry;
+                        let pnl = size * diff / entry;
                         (pnl, true)
                     } else {
-                        let diff = entry.checked_sub(current).expect("Diff underflow");
-                        let pnl = size
-                            .checked_mul(diff)
-                            .expect("PnL mul overflow")
-                            .checked_div(entry)
-                            .expect("PnL div error");
+                        // Long loss
+                        let diff = entry - current;
+                        let pnl = size * diff / entry;
                         (pnl, false)
                     }
                 }
                 Direction::Short => {
-                    if entry >= current {
-                        let diff = entry.checked_sub(current).expect("Diff underflow");
-                        let pnl = size
-                            .checked_mul(diff)
-                            .expect("PnL mul overflow")
-                            .checked_div(entry)
-                            .expect("PnL div error");
+                    if current <= entry {
+                        // Short profit 
+                        let diff = entry - current;
+                        let pnl = size * diff / entry;
                         (pnl, true)
                     } else {
-                        let diff = current.checked_sub(entry).expect("Diff underflow");
-                        let pnl = size
-                            .checked_mul(diff)
-                            .expect("PnL mul overflow")
-                            .checked_div(entry)
-                            .expect("PnL div error");
+                        // Short loss 
+                        let diff = current - entry;
+                        let pnl = size * diff / entry;
                         (pnl, false)
                     }
                 }

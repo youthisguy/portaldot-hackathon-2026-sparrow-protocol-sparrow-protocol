@@ -11,7 +11,8 @@ import {
 } from "react";
 
 const SPARROWLEND_ADDRESS = "5EiRyzh5RK6GtPRNhJszYDM9JcsyAhNYqUc4bdaQSvGxc4nP";
-const SPARROWMARGIN_ADDRESS = "5D3cq4kYqACT721DftgJGG7XKam8gZHGM6RAtfqwV729jPzy";
+const SPARROWMARGIN_ADDRESS =
+  "5FsUocequHi7Pj4AhBXgL6cFSZJ1rPP663x1c4RbUD66HoMX";
 const WS_ENDPOINT = "ws://127.0.0.1:9944";
 const UNIT = 1_000_000_000_000n;
 
@@ -34,7 +35,11 @@ export function toUnit(amount: string): bigint {
 }
 
 export type ToastType = "success" | "error" | "info";
-export interface Toast { id: number; msg: string; type: ToastType }
+export interface Toast {
+  id: number;
+  msg: string;
+  type: ToastType;
+}
 
 export interface PoolStats {
   availableLiquidity: string;
@@ -144,13 +149,18 @@ export function ChainProvider({ children }: { children: ReactNode }) {
     setConnecting(true);
     try {
       const { ApiPromise, WsProvider } = await import("@polkadot/api");
-      const { web3Accounts, web3Enable } = await import("@polkadot/extension-dapp");
+      const { web3Accounts, web3Enable } = await import(
+        "@polkadot/extension-dapp"
+      );
       const provider = new WsProvider(WS_ENDPOINT);
       const apiInstance = await ApiPromise.create({ provider });
       setApi(apiInstance);
       const extensions = await web3Enable("Sparrow Protocol");
       if (extensions.length === 0) {
-        addToast("No Polkadot wallet found. Install Talisman or SubWallet.", "error");
+        addToast(
+          "No Polkadot wallet found. Install Talisman or SubWallet.",
+          "error"
+        );
         setConnecting(false);
         return;
       }
@@ -170,7 +180,11 @@ export function ChainProvider({ children }: { children: ReactNode }) {
     const addr = selectedAccount.address;
     try {
       const lend = await loadContract(api, SPARROWLEND_ADDRESS, "sparrowlend");
-      const margin = await loadContract(api, SPARROWMARGIN_ADDRESS, "sparrowmargin");
+      const margin = await loadContract(
+        api,
+        SPARROWMARGIN_ADDRESS,
+        "sparrowmargin"
+      );
       const opts = {
         gasLimit: api.registry.createType("WeightV2", {
           refTime: 40_000_000_000n,
@@ -204,9 +218,10 @@ export function ChainProvider({ children }: { children: ReactNode }) {
           const [sharesRaw, val, pending] = Array.isArray(data) ? data : [];
           let shares = "0";
           if (sharesRaw) {
-            shares = typeof sharesRaw === "string" && sharesRaw.startsWith("0x")
-              ? BigInt(sharesRaw).toString()
-              : sharesRaw.toString();
+            shares =
+              typeof sharesRaw === "string" && sharesRaw.startsWith("0x")
+                ? BigInt(sharesRaw).toString()
+                : sharesRaw.toString();
           }
           setLenderShares(shares);
           setLenderValue(formatUnit(BigInt(val || 0)));
@@ -255,9 +270,14 @@ export function ChainProvider({ children }: { children: ReactNode }) {
               const direction = Number(p[2] || 0) === 0 ? "Long" : "Short";
               const isActive = Boolean(p[8]);
               if (!isActive) continue;
-              let pnl = "0.000", isProfit = true;
+              let pnl = "0.000",
+                isProfit = true;
               try {
-                const pnlResult = await margin.query.getPositionPnl(addr, opts, id);
+                const pnlResult = await margin.query.getPositionPnl(
+                  addr,
+                  opts,
+                  id
+                );
                 if (pnlResult?.result.isOk && pnlResult.output) {
                   const pnlRaw = (pnlResult.output as any).toJSON();
                   const pnlData = pnlRaw?.ok || pnlRaw;
@@ -268,13 +288,16 @@ export function ChainProvider({ children }: { children: ReactNode }) {
                 }
               } catch {}
               formattedPositions.push({
-                id: Number(id), direction,
+                id: Number(id),
+                direction,
                 collateral: formatUnit(BigInt(p[3] || 0)),
                 borrowed: formatUnit(BigInt(p[4] || 0)),
                 leverage: Number(p[5] || 100) / 100,
                 entryPrice: formatUnit(BigInt(p[6] || 0)),
-                isActive, healthFactor: (Number(p[7] || 150) / 100).toFixed(2),
-                pnl, isProfit,
+                isActive,
+                healthFactor: (Number(p[7] || 150) / 100).toFixed(2),
+                pnl,
+                isProfit,
               });
             } catch {}
           }
@@ -298,62 +321,102 @@ export function ChainProvider({ children }: { children: ReactNode }) {
     }
   }, [connected, refreshData]);
 
-  const sendTx = useCallback(async (
-    method: "lend" | "margin",
-    fn: string,
-    args: any[],
-    value: bigint = 0n,
-    label = fn
-  ) => {
-    if (!api || !selectedAccount) return;
-    setLoading(label);
-    try {
-      const { web3FromAddress } = await import("@polkadot/extension-dapp");
-      const contractName = method === "lend" ? "sparrowlend" : "sparrowmargin";
-      const contractAddress = method === "lend" ? SPARROWLEND_ADDRESS : SPARROWMARGIN_ADDRESS;
-      const contract = await loadContract(api, contractAddress, contractName);
-      const injector = await web3FromAddress(selectedAccount.address);
-      const gasLimit = api.registry.createType("WeightV2", {
-        refTime: 60_000_000_000n, proofSize: 524288n,
-      });
-      await new Promise<void>((resolve, reject) => {
-        let unsub: any;
-        const txArgs = value > 0n
-          ? [{ gasLimit, storageDepositLimit: null, value: value.toString() }, ...args]
-          : [{ gasLimit, storageDepositLimit: null }, ...args];
-        (contract.tx[fn] as any)(...txArgs)
-          .signAndSend(selectedAccount.address, { signer: injector.signer }, (result: any) => {
-            if (result.status.isInBlock) {
-              addToast(`✓ ${label} included in block`, "success");
-              refreshData();
-              resolve();
-              unsub?.();
-              setTimeout(refreshData, 1500);
-            } else if (result.status.isFinalized) {
-              unsub?.();
-            } else if (result.dispatchError) {
-              reject(new Error(result.dispatchError.toString()));
-              unsub?.();
-            }
-          })
-          .then((u: any) => { unsub = u; })
-          .catch(reject);
-      });
-    } catch (err: any) {
-      addToast(`✗ ${label} failed: ${err.message}`, "error");
-    } finally {
-      setLoading(null);
-    }
-  }, [api, selectedAccount, addToast, refreshData]);
+  const sendTx = useCallback(
+    async (
+      method: "lend" | "margin",
+      fn: string,
+      args: any[],
+      value: bigint = 0n,
+      label = fn
+    ) => {
+      if (!api || !selectedAccount) return;
+      setLoading(label);
+      try {
+        const { web3FromAddress } = await import("@polkadot/extension-dapp");
+        const contractName =
+          method === "lend" ? "sparrowlend" : "sparrowmargin";
+        const contractAddress =
+          method === "lend" ? SPARROWLEND_ADDRESS : SPARROWMARGIN_ADDRESS;
+        const contract = await loadContract(api, contractAddress, contractName);
+        const injector = await web3FromAddress(selectedAccount.address);
+        const gasLimit = api.registry.createType("WeightV2", {
+          refTime: 60_000_000_000n,
+          proofSize: 524288n,
+        });
+        await new Promise<void>((resolve, reject) => {
+          let unsub: any;
+          const txArgs =
+            value > 0n
+              ? [
+                  {
+                    gasLimit,
+                    storageDepositLimit: null,
+                    value: value.toString(),
+                  },
+                  ...args,
+                ]
+              : [{ gasLimit, storageDepositLimit: null }, ...args];
+          (contract.tx[fn] as any)(...txArgs)
+            .signAndSend(
+              selectedAccount.address,
+              { signer: injector.signer },
+              (result: any) => {
+                if (result.status.isInBlock) {
+                  addToast(`✓ ${label} included in block`, "success");
+                  refreshData();
+                  resolve();
+                  unsub?.();
+                  setTimeout(refreshData, 1500);
+                } else if (result.status.isFinalized) {
+                  unsub?.();
+                } else if (result.dispatchError) {
+                  reject(new Error(result.dispatchError.toString()));
+                  unsub?.();
+                }
+              }
+            )
+            .then((u: any) => {
+              unsub = u;
+            })
+            .catch(reject);
+        });
+      } catch (err: any) {
+        addToast(`✗ ${label} failed: ${err.message}`, "error");
+      } finally {
+        setLoading(null);
+      }
+    },
+    [api, selectedAccount, addToast, refreshData]
+  );
 
   return (
-    <ChainContext.Provider value={{
-      api, connecting, connected, accounts, selectedAccount, setSelectedAccount,
-      balance, connect, poolStats, freeCollateral, positions, lenderShares,
-      lenderValue, pendingYield, currentPrice, refreshData, sendTx, loading,
-      toasts, addToast, dismissToast,
-      SPARROWLEND_ADDRESS, SPARROWMARGIN_ADDRESS,
-    }}>
+    <ChainContext.Provider
+      value={{
+        api,
+        connecting,
+        connected,
+        accounts,
+        selectedAccount,
+        setSelectedAccount,
+        balance,
+        connect,
+        poolStats,
+        freeCollateral,
+        positions,
+        lenderShares,
+        lenderValue,
+        pendingYield,
+        currentPrice,
+        refreshData,
+        sendTx,
+        loading,
+        toasts,
+        addToast,
+        dismissToast,
+        SPARROWLEND_ADDRESS,
+        SPARROWMARGIN_ADDRESS,
+      }}
+    >
       {children}
     </ChainContext.Provider>
   );

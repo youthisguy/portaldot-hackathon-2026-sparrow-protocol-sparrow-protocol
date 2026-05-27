@@ -101,7 +101,7 @@ portaldot-hackathon-2026-sparrow-protocol-sparrow-protocol/
 | Contract | Address |
 |---|---|
 | SparrowLend | `5EiRyzh5RK6GtPRNhJszYDM9JcsyAhNYqUc4bdaQSvGxc4nP` |
-| SparrowMargin | `5D3cq4kYqACT721DftgJGG7XKam8gZHGM6RAtfqwV729jPzy` |
+| SparrowMargin | `5FsUocequHi7Pj4AhBXgL6cFSZJ1rPP663x1c4RbUD66HoMX` |
 
 **Network:** `ws://127.0.0.1:9944` (substrate-contracts-node --dev)  
 **Deployer:** `5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY` (Alice `//Alice`)
@@ -175,7 +175,7 @@ cargo contract instantiate \
   --suri //Alice \
   --url ws://127.0.0.1:9944 \
   --execute
-# Replace args the actual contract address 
+# Replace args the contract address 
 ```
 
 **6. Link the contracts**
@@ -185,20 +185,13 @@ cd ../sparrowlend
 cargo contract call \
   --contract 5EiRyzh5RK6GtPRNhJszYDM9JcsyAhNYqUc4bdaQSvGxc4nP \
   --message set_margin_contract \
-  --args 5D3cq4kYqACT721DftgJGG7XKam8gZHGM6RAtfqwV729jPzy \
+  --args 5FsUocequHi7Pj4AhBXgL6cFSZJ1rPP663x1c4RbUD66HoMX \
   --suri //Alice \
   --url ws://127.0.0.1:9944 \
   --execute
 ```
 
-**7. Run unit tests**
-
-```bash
-cd sparrowlend
-cargo test
-```
-
-**8. Demo client**
+**7. Demo client**
 
 ```bash
 cd ../client
@@ -216,7 +209,6 @@ npm run dev
 - Tiered leverage (5x / 3x) and health factor liquidations
 - Cross-contract borrowing and repayment (SparrowMargin ↔ SparrowLend)
 - Funding rate settlement every 100 blocks
-- 30+ unit tests covering all core SparrowLend flows
 
 ### Next Phase Plans
 

@@ -239,15 +239,31 @@ export default function TradePanel() {
                 marginTop: 8,
               }}
             >
-              <span
-                style={{
-                  fontFamily: "'IBM Plex Mono', monospace",
-                  fontSize: 10,
-                  color: "var(--text-muted)",
-                }}
-              >
-                Free: {freeCollateral} POT
-              </span>
+              <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                <span
+                  style={{
+                    fontFamily: "'IBM Plex Mono', monospace",
+                    fontSize: 9,
+                    color: "var(--text-muted)",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.08em",
+                  }}
+                >
+                  Available:
+                </span>
+                <span
+                  style={{
+                    fontFamily: "'IBM Plex Mono', monospace",
+                    fontSize: 13,
+                    color: "var(--accent-amber)",
+                    fontWeight: 700,
+                    lineHeight: 1,
+                  }}
+                >
+                  {freeCollateral}{" "}
+                  <span style={{ fontSize: 9, opacity: 0.7 }}>POT</span>
+                </span>
+              </div>
               <button
                 onClick={handleDepositCollateral}
                 disabled={!!loading}
@@ -333,65 +349,93 @@ export default function TradePanel() {
 
           {/* Leverage slider */}
           <div style={{ padding: "2px 0" }}>
-            <div style={{ ...labelStyle, marginBottom: 8 }}>Leverage</div>
-            <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
-              {[100, 200, 300, 500].map((lev) => {
-                const isActive = posLeverage === lev;
-                return (
-                  <button
-                    key={lev}
-                    onClick={() => setPosLeverage(lev)}
-                    style={{
-                      flex: 1,
-                      padding: "5px 0",
-                      borderRadius: 6,
-                      fontFamily: "'IBM Plex Mono', monospace",
-                      fontSize: 11,
-                      fontWeight: 600,
-                      cursor: "pointer",
-                      border: `1px solid ${
-                        isActive ? "var(--accent-amber)" : "var(--border)"
-                      }`,
-                      background: isActive
-                        ? "var(--accent-amber)"
-                        : "transparent",
-                      color: isActive ? "#0d0e0f" : "var(--text-muted)",
-                      transition: "all 0.15s",
-                    }}
-                  >
-                    {lev / 100}×
-                  </button>
-                );
-              })}
-            </div>
-            <input
-              type="range"
-              min="100"
-              max="500"
-              step="100"
-              value={posLeverage}
-              onChange={(e) => setPosLeverage(parseInt(e.target.value))}
-              style={{
-                width: "100%",
-                accentColor: "var(--accent-amber)",
-                cursor: "pointer",
-              }}
-            />
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                fontFamily: "'IBM Plex Mono', monospace",
-                fontSize: 9,
-                color: "var(--text-muted)",
-                marginTop: 3,
-              }}
-            >
-              {["1×", "2×", "3×", "4×", "5×"].map((l) => (
-                <span key={l}>{l}</span>
-              ))}
-            </div>
-          </div>
+  <div style={{ ...labelStyle, marginBottom: 8 }}>Leverage</div>
+  <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
+    {[100, 200, 300, 500].map((lev) => {
+      const isActive = posLeverage === lev;
+      return (
+        <button
+          key={lev}
+          onClick={() => setPosLeverage(lev)}
+          style={{
+            flex: 1,
+            padding: "5px 0",
+            borderRadius: 6,
+            fontFamily: "'IBM Plex Mono', monospace",
+            fontSize: 11,
+            fontWeight: 600,
+            cursor: "pointer",
+            border: `1px solid ${isActive ? "var(--accent-amber)" : "var(--border)"}`,
+            background: isActive ? "var(--accent-amber)" : "transparent",
+            color: isActive ? "#0d0e0f" : "var(--text-muted)",
+            transition: "all 0.15s",
+          }}
+        >
+          {lev / 100}×
+        </button>
+      );
+    })}
+  </div>
+
+  <div style={{ position: "relative", height: 20, display: "flex", alignItems: "center" }}>
+    <div
+      style={{
+        position: "absolute",
+        left: 0,
+        right: 0,
+        height: 6,
+        borderRadius: 3,
+        background: `
+          repeating-linear-gradient(-55deg, transparent, transparent 3px, rgba(0,0,0,0.18) 3px, rgba(0,0,0,0.18) 5px),
+          linear-gradient(to right, #2a9d3a, #f0c040, #e03030)
+        `,
+      }}
+    />
+    <div
+      style={{
+        position: "absolute",
+        right: 0,
+        height: 6,
+        borderRadius: "0 3px 3px 0",
+        background: "var(--bg-secondary, #1a1b1c)",
+        width: `${100 - ((posLeverage - 100) / 400) * 100}%`,
+        transition: "width 0.15s",
+      }}
+    />
+    <input
+      type="range"
+      min="100"
+      max="500"
+      step="100"
+      value={posLeverage}
+      onChange={(e) => setPosLeverage(parseInt(e.target.value))}
+      style={{
+        position: "absolute",
+        width: "100%",
+        opacity: 0,
+        cursor: "pointer",
+        margin: 0,
+        padding: 0,
+        height: "100%",
+      }}
+    />
+  </div>
+
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "space-between",
+      fontFamily: "'IBM Plex Mono', monospace",
+      fontSize: 9,
+      color: "var(--text-muted)",
+      marginTop: 3,
+    }}
+  >
+    {["1×", "2×", "3×", "4×", "5×"].map((l) => (
+      <span key={l}>{l}</span>
+    ))}
+  </div>
+</div>
 
           {/* Open position button */}
           <button

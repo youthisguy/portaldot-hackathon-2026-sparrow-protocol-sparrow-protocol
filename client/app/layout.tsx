@@ -3,7 +3,8 @@ import "./globals.css";
 import { ChainProvider } from "./context/ChainContext";
 import Header from "./components/Header";
 import Toasts from "./components/Toasts";
- 
+import { Analytics } from "@vercel/analytics/next"
+
 export const metadata: Metadata = {
   title: "Sparrow | Yield Layer on Portaldot",
   description: "Isolated margin trading and money market on Portaldot",
@@ -12,6 +13,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="h-full">
+      <Analytics />
       <body className="min-h-full flex flex-col">
         <ChainProvider>
           <Header />

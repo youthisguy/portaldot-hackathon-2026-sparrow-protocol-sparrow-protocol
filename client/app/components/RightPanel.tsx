@@ -3,7 +3,8 @@
 import { useChain } from "@/app/context/ChainContext";
 
 const SPARROWLEND_ADDRESS = "5EiRyzh5RK6GtPRNhJszYDM9JcsyAhNYqUc4bdaQSvGxc4nP";
-const SPARROWMARGIN_ADDRESS = "5D3cq4kYqACT721DftgJGG7XKam8gZHGM6RAtfqwV729jPzy";
+const SPARROWMARGIN_ADDRESS =
+  "5FsUocequHi7Pj4AhBXgL6cFSZJ1rPP663x1c4RbUD66HoMX";
 const WS_ENDPOINT = "ws://127.0.0.1:9944";
 
 const FEATURES = [
@@ -40,7 +41,8 @@ export default function RightPanel() {
         </h1>
         <p className="landing-subtitle">
           Sparrow Protocol delivers composable DeFi primitives on Substrate.
-          Lend assets for yield or trade with leverage — all onchain, all atomic.
+          Lend assets for yield or trade with leverage — all onchain, all
+          atomic.
         </p>
         <button
           className="btn btn-primary landing-connect-btn"
