@@ -37,28 +37,13 @@ export default function Header() {
       <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
         {/* Logo */}
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span
-            style={{
-              fontSize: 18,
-              color: "var(--accent-amber)",
-              lineHeight: 1,
-              fontFamily: "'IBM Plex Mono', monospace",
-            }}
-          >
-            ◈
-          </span>
-          <span
-            style={{
-              fontFamily: "'IBM Plex Mono', monospace",
-              fontSize: 15,
-              fontWeight: 600,
-              color: "var(--text-primary)",
-              letterSpacing: "0.02em",
-            }}
-          >
-            Sparrow
-          </span>
-        </div>
+  <img
+    src="/logo.png"
+    alt="Sparrow logo"
+    style={{ height: 58, width: "auto" }}
+  />
+ 
+</div>
 
         {/* Nav */}
         <nav style={{ display: "flex", alignItems: "center", gap: 4 }}>
@@ -80,7 +65,7 @@ export default function Header() {
                   color: isActive ? "var(--accent-amber)" : "var(--text-muted)",
                   background: isActive ? "var(--accent-amber-dim)" : "transparent",
                   textDecoration: "none",
-                  borderRadius: 4,
+                  borderRadius: 12,
                   transition: "color 0.15s, background 0.15s",
                 }}
               >

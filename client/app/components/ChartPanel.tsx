@@ -84,7 +84,7 @@ export default function ChartPanel() {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 18, color: token.accentAmber, lineHeight: 1 }}>◈</span>
+ 
           <span
             style={{
               fontFamily: token.fontMono,

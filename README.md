@@ -10,9 +10,9 @@
 
 - **Solution:** Sparrow Protocol delivers two tightly integrated smart contracts:
   - **SparrowLend** — a money market supporting variable deposits (MasterChef-style yield accumulator) and fixed-term deposits with rate-locked APY and early-exit penalties. Interest follows a kinked utilization curve (2% base → 8% optimal → 30% max), inspired by Compound V2.
-  - **SparrowMargin** — an isolated margin trading engine for Long/Short positions with tiered leverage (5x under 10,000 UNIT, 3x above), health-factor-based liquidations with a 5% liquidator bonus, and funding rate settlement every 100 blocks.
+  - **SparrowMargin** — an isolated margin trading engine for Long/Short positions with tiered leverage (5x under 10,000 POT, 3x above), health-factor-based liquidations with a 5% liquidator bonus, and funding rate settlement every 100 blocks.
 
-- **Blockchain Relevance:** Both contracts are written in ink! 4.3 (Rust/WASM) and deployed on `pallet-contracts`. SparrowMargin makes cross-contract calls to SparrowLend for all borrowing and repayment atomically on position open and close — demonstrating composable DeFi primitive design on Substrate. Target chain is Portaldot, pending a node binary update to Contracts API v9+.
+- **Blockchain Relevance:** Both contracts are written in ink! 4.3 (Rust/WASM) and deployed on `pallet-contracts`. SparrowMargin makes cross-contract calls to SparrowLend for all borrowing and repayment atomically on position open and close — demonstrating composable DeFi primitive design on Substrate.
 
 ---
 
@@ -50,8 +50,7 @@
 | Blockchain platform | substrate-contracts-node (pallet-contracts v9+) / Portaldot |
 | Smart contract language | ink! 4.3 (Rust / WASM) |
 | Build tool | cargo-contract |
-| Frontend framework | Not applicable — terminal CLI demo |
-| Other components | Native UNIT balance (no wrapped tokens), mock price oracle |
+| Other components | Native POT balance (no wrapped tokens), mock price oracle |
 
 ---
 
@@ -79,9 +78,9 @@ portaldot-hackathon-2026-sparrow-protocol-sparrow-protocol/
 
 | Function | Description |
 |---|---|
-| `deposit` | Deposit UNIT into the variable pool; mints yield-bearing shares |
+| `deposit` | Deposit POT into the variable pool; mints yield-bearing shares |
 | `deposit_fixed` | Deposit with a locked APY for a fixed term |
-| `withdraw` | Redeem shares for UNIT plus accumulated yield |
+| `withdraw` | Redeem shares for POT plus accumulated yield |
 | `borrow_for` | Authorized cross-contract call from SparrowMargin to borrow on behalf of a trader |
 | `repay_for` | Authorized cross-contract call to repay a trader's debt |
 | `set_margin_contract` | Admin: link the authorized SparrowMargin address |
@@ -90,7 +89,7 @@ portaldot-hackathon-2026-sparrow-protocol-sparrow-protocol/
 
 | Function | Description |
 |---|---|
-| `deposit_collateral` | Deposit UNIT collateral before opening a position |
+| `deposit_collateral` | Deposit POT collateral before opening a position |
 | `open_position` | Open a Long or Short with specified leverage; cross-calls SparrowLend to borrow |
 | `close_position` | Close a position, repay debt via SparrowLend, and receive payout |
 | `get_health_factor` | Query a position's health (u32::MAX = fully healthy, no debt) |
@@ -199,58 +198,13 @@ cd sparrowlend
 cargo test
 ```
 
----
-
-## Demo
-
-### Demo CLI Flow
+**8. Demo client**
 
 ```bash
-# Deposit into lending pool
-cargo contract call \
-  --contract <SPARROWLEND_ADDRESS> \
-  --message deposit \
-  --value 10000000000000 \
-  --suri //Alice \
-  --url ws://127.0.0.1:9944 \
-  --execute
-
-# Post collateral
-cargo contract call \
-  --contract <SPARROWMARGIN_ADDRESS> \
-  --message deposit_collateral \
-  --value 5000000000000 \
-  --suri //Alice \
-  --url ws://127.0.0.1:9944 \
-  --execute
-
-# Open Long position (1x leverage)
-cargo contract call \
-  --contract <SPARROWMARGIN_ADDRESS> \
-  --message open_position \
-  --args Long 100 1000000000000 \
-  --suri //Alice \
-  --url ws://127.0.0.1:9944 \
-  --execute
-
-# Check health factor
-cargo contract call \
-  --contract <SPARROWMARGIN_ADDRESS> \
-  --message get_health_factor \
-  --args 1 \
-  --suri //Alice \
-  --url ws://127.0.0.1:9944
-
-# Close position
-cargo contract call \
-  --contract <SPARROWMARGIN_ADDRESS> \
-  --message close_position \
-  --args 1 \
-  --suri //Alice \
-  --url ws://127.0.0.1:9944 \
-  --execute
+cd ../client
+npm install
+npm run dev
 ```
----
 
 ## Roadmap
 
@@ -267,8 +221,6 @@ cargo contract call \
 ### Next Phase Plans
 
 - Integrate a live price oracle (e.g. Chainlink or a Substrate off-chain worker)
-- Build a web frontend (React/Next.js) for lenders and traders
-- Deploy to Portaldot mainnet once node binary supports Contracts API v9+
 - Add multi-asset collateral and cross-margin mode
 - Introduce governance token and protocol fee distribution
 
@@ -277,7 +229,7 @@ cargo contract call \
 ## Team
 
 - **Team Name:** Sparrow Protocol
-- **Contact:** @youthisman
+- **Contact:** t.me/@youthisguy
 
 ---
 

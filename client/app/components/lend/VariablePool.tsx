@@ -171,7 +171,7 @@ export default function VariablePool() {
       >
         Shares are minted proportionally to your deposit. Yield accrues from
         borrower interest and is distributed via the MasterChef accumulator.
-        Withdraw anytime — no lock-up.
+        Withdraw anytime with no lock-up.
       </div>
     </div>
   );

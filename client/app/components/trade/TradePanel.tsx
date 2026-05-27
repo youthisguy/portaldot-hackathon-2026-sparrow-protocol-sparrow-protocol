@@ -155,7 +155,7 @@ export default function TradePanel() {
                   border: `1px solid ${
                     isActive ? activeColor : "var(--border)"
                   }`,
-                  borderRadius: 8,
+                  borderRadius: 12,
                   background: isActive ? activeDim : "transparent",
                   color: isActive ? activeColor : "var(--text-muted)",
                   fontFamily: "'IBM Plex Mono', monospace",
@@ -400,7 +400,7 @@ export default function TradePanel() {
             style={{
               width: "100%",
               padding: "13px 0",
-              borderRadius: 8,
+              borderRadius: 10,
               border: "none",
               cursor: loading ? "not-allowed" : "pointer",
               opacity: loading ? 0.5 : 1,
@@ -485,7 +485,7 @@ export default function TradePanel() {
             </div>
             <div style={{ display: "flex", gap: 8 }}>
               <input
-                type="number"
+                type="text"
                 placeholder="1.00"
                 value={mockPrice}
                 onChange={(e) => setMockPrice(e.target.value)}
