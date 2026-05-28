@@ -101,7 +101,7 @@ portaldot-hackathon-2026-sparrow-protocol-sparrow-protocol/
 | Contract | Address |
 |---|---|
 | SparrowLend | `5EiRyzh5RK6GtPRNhJszYDM9JcsyAhNYqUc4bdaQSvGxc4nP` |
-| SparrowMargin | `5FsUocequHi7Pj4AhBXgL6cFSZJ1rPP663x1c4RbUD66HoMX` |
+| SparrowMargin | `5Gg7Zo81UehoGZbeEgS2dmjZwiVaJEVQVPTqT8qVHHAGYa8W` |
 
 **Network:** `ws://127.0.0.1:9944` (substrate-contracts-node --dev)  
 **Deployer:** `5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY` (Alice `//Alice`)
@@ -175,7 +175,7 @@ cargo contract instantiate \
   --suri //Alice \
   --url ws://127.0.0.1:9944 \
   --execute
-# Replace args the contract address 
+# Pass to args the sparrowlend contract address 
 ```
 
 **6. Link the contracts**
@@ -185,13 +185,14 @@ cd ../sparrowlend
 cargo contract call \
   --contract 5EiRyzh5RK6GtPRNhJszYDM9JcsyAhNYqUc4bdaQSvGxc4nP \
   --message set_margin_contract \
-  --args 5FsUocequHi7Pj4AhBXgL6cFSZJ1rPP663x1c4RbUD66HoMX \
+  --args 5Gg7Zo81UehoGZbeEgS2dmjZwiVaJEVQVPTqT8qVHHAGYa8W \
   --suri //Alice \
   --url ws://127.0.0.1:9944 \
   --execute
+# Pass to args the sparrowmargin contract address 
 ```
 
-**7. Demo client**
+**7. start the client**
 
 ```bash
 cd ../client

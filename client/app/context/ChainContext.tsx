@@ -12,7 +12,7 @@ import {
 
 const SPARROWLEND_ADDRESS = "5EiRyzh5RK6GtPRNhJszYDM9JcsyAhNYqUc4bdaQSvGxc4nP";
 const SPARROWMARGIN_ADDRESS =
-  "5FsUocequHi7Pj4AhBXgL6cFSZJ1rPP663x1c4RbUD66HoMX";
+  "5Gg7Zo81UehoGZbeEgS2dmjZwiVaJEVQVPTqT8qVHHAGYa8W";
 const WS_ENDPOINT = "ws://127.0.0.1:9944";
 const UNIT = 1_000_000_000_000n;
 
@@ -62,6 +62,14 @@ export interface Position {
   isProfit?: boolean;
 }
 
+export interface FixedDeposit {
+  principal: string;
+  rateBps: number;
+  unlockBlock: number;
+  accruedInterest: string;
+  isActive: boolean;
+}
+
 interface ChainCtx {
   // connection
   api: any;
@@ -81,6 +89,7 @@ interface ChainCtx {
   pendingYield: string;
   currentPrice: string;
   refreshData: () => Promise<void>;
+  query: (method: "lend" | "margin", fn: string, args: any[]) => Promise<any>;
   // tx
   sendTx: (
     method: "lend" | "margin",
@@ -90,6 +99,8 @@ interface ChainCtx {
     label?: string
   ) => Promise<void>;
   loading: string | null;
+  fixedDeposit: FixedDeposit | null;
+  currentBlock: number | null;
   // toasts
   toasts: Toast[];
   addToast: (msg: string, type?: ToastType) => void;
@@ -122,6 +133,8 @@ export function ChainProvider({ children }: { children: ReactNode }) {
   const [accounts, setAccounts] = useState<any[]>([]);
   const [selectedAccount, setSelectedAccount] = useState<any>(null);
   const [balance, setBalance] = useState("0.000");
+  const [fixedDeposit, setFixedDeposit] = useState<FixedDeposit | null>(null);
+  const [currentBlock, setCurrentBlock] = useState<number | null>(null);
 
   const [poolStats, setPoolStats] = useState<PoolStats | null>(null);
   const [freeCollateral, setFreeCollateral] = useState("0.000");
@@ -305,6 +318,35 @@ export function ChainProvider({ children }: { children: ReactNode }) {
         }
       } catch {}
 
+      // Current block
+      try {
+        const header = await api.rpc.chain.getHeader();
+        setCurrentBlock(header.number.toNumber());
+      } catch {}
+
+      // Fixed deposit
+      try {
+        const result = await lend.query.getFixedDeposit(addr, opts, addr);
+        if (result?.result.isOk && result.output) {
+          const raw = (result.output as any).toJSON();
+          const data = raw?.ok || raw;
+          if (data && Array.isArray(data)) {
+            const [principal, rateBps, unlockBlock, interest, isActive] = data;
+            setFixedDeposit({
+              principal: formatUnit(BigInt(principal || 0)),
+              rateBps: Number(rateBps || 0),
+              unlockBlock: Number(unlockBlock || 0),
+              accruedInterest: formatUnit(BigInt(interest || 0)),
+              isActive: Boolean(isActive),
+            });
+          } else {
+            setFixedDeposit(null);
+          }
+        }
+      } catch {
+        setFixedDeposit(null);
+      }
+
       // Balance
       try {
         const accountData = await api.query.system.account(addr);
@@ -389,6 +431,33 @@ export function ChainProvider({ children }: { children: ReactNode }) {
     [api, selectedAccount, addToast, refreshData]
   );
 
+  const query = useCallback(
+    async (method: "lend" | "margin", fn: string, args: any[]) => {
+      if (!api || !selectedAccount) return null;
+      const contractName = method === "lend" ? "sparrowlend" : "sparrowmargin";
+      const contractAddress =
+        method === "lend" ? SPARROWLEND_ADDRESS : SPARROWMARGIN_ADDRESS;
+      const contract = await loadContract(api, contractAddress, contractName);
+      const opts = {
+        gasLimit: api.registry.createType("WeightV2", {
+          refTime: 40_000_000_000n,
+          proofSize: 524288n,
+        }),
+      };
+      const result = await (contract.query[fn] as any)(
+        selectedAccount.address,
+        opts,
+        ...args
+      );
+      if (result?.result.isOk && result.output) {
+        const raw = (result.output as any).toJSON();
+        return raw?.ok ?? raw;
+      }
+      throw new Error(result?.result.asErr?.toString() ?? "Query failed");
+    },
+    [api, selectedAccount]
+  );
+
   return (
     <ChainContext.Provider
       value={{
@@ -400,6 +469,8 @@ export function ChainProvider({ children }: { children: ReactNode }) {
         setSelectedAccount,
         balance,
         connect,
+        fixedDeposit,
+        currentBlock,
         poolStats,
         freeCollateral,
         positions,
@@ -408,6 +479,7 @@ export function ChainProvider({ children }: { children: ReactNode }) {
         pendingYield,
         currentPrice,
         refreshData,
+        query,
         sendTx,
         loading,
         toasts,

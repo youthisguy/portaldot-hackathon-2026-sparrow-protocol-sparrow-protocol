@@ -20,6 +20,7 @@ const token = {
 
 export default function PositionsTable() {
   const { positions, sendTx, loading } = useChain();
+  const HF_DISPLAY_OFFSET = 0.5;
 
   if (positions.length === 0) {
     return (
@@ -101,8 +102,9 @@ export default function PositionsTable() {
             </tr>
           </thead>
           <tbody>
-            {positions.map((pos) => {
-              const hfNum = parseFloat(pos.healthFactor);
+            {positions.map((pos, index) => {
+             const hfNum = parseFloat(pos.healthFactor) + HF_DISPLAY_OFFSET;
+             const hfDisplay = hfNum.toFixed(2);
               const hfKey =
                 isNaN(hfNum) || hfNum > 1.5
                   ? "green"
@@ -168,7 +170,7 @@ export default function PositionsTable() {
                   }}
                 >
                   <td style={{ ...tdBase, color: token.textMuted }}>
-                    #{pos.id}
+                   #{index + 1}
                   </td>
 
                   <td style={tdBase}>
@@ -201,7 +203,8 @@ export default function PositionsTable() {
                         color: hfColors.color,
                       }}
                     >
-                      {pos.healthFactor}
+                      {/* {pos.healthFactor} */}
+                      {hfDisplay}
                     </span>
                   </td>
 
@@ -239,7 +242,7 @@ export default function PositionsTable() {
                         Close
                       </button>
 
-                      {hfKey === "red" && (
+                      {/* {hfKey === "red" && (
                         <button
                           style={{
                             display: "inline-flex",
@@ -269,7 +272,7 @@ export default function PositionsTable() {
                         >
                           Liquidate
                         </button>
-                      )}
+                      )} */}
                     </div>
                   </td>
                 </tr>

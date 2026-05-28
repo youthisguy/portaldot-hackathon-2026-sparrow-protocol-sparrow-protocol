@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useChain } from "@/app/context/ChainContext";  
+import { useChain } from "@/app/context/ChainContext";
 
 export default function VariablePool() {
   const {
@@ -24,6 +24,14 @@ export default function VariablePool() {
     return BigInt(Math.floor(n * 1_000_000_000_000));
   };
 
+  // Parse raw shares string from context into a number
+  const totalShares = parseFloat(lenderShares || "0") || 0;
+
+  const fillWithdrawPercent = (pct: number) => {
+    const amount = (totalShares * pct) / 100;
+    setWithdrawShares(amount > 0 ? Math.floor(amount).toString() : "");
+  };
+
   const handleDeposit = () => {
     const amt = toUnit(depositAmt);
     if (!amt) return addToast("Enter deposit amount", "error");
@@ -42,7 +50,6 @@ export default function VariablePool() {
 
   return (
     <div className="card" style={{ padding: 24 }}>
-      {/* Section header */}
       <div className="section-header">
         <span className="section-title">◈ Variable Pool</span>
         <div className="section-line" />
@@ -53,7 +60,6 @@ export default function VariablePool() {
         )}
       </div>
 
-      {/* My position summary */}
       <div
         style={{
           display: "grid",
@@ -91,8 +97,8 @@ export default function VariablePool() {
         ))}
       </div>
 
-      {/* Deposit */}
       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        {/* Deposit */}
         <div>
           <div className="field-label">Deposit Amount (POT)</div>
           <div style={{ display: "flex", gap: 8 }}>
@@ -101,8 +107,6 @@ export default function VariablePool() {
               placeholder="0.00"
               value={depositAmt}
               onChange={(e) => setDepositAmt(e.target.value)}
-              min="0"
-              step="0.1"
             />
             <button
               className="btn btn-green"
@@ -117,14 +121,46 @@ export default function VariablePool() {
 
         {/* Withdraw */}
         <div>
-          <div className="field-label">Withdraw (shares)</div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 6,
+            }}
+          >
+            <div className="field-label" style={{ margin: 0 }}>Withdraw (shares)</div>
+            {/* Percentage quick-fill buttons */}
+            <div style={{ display: "flex", gap: 4 }}>
+              {[20, 50, 100].map((pct) => (
+                <button
+                  key={pct}
+                  onClick={() => fillWithdrawPercent(pct)}
+                  disabled={totalShares === 0}
+                  style={{
+                    fontFamily: "var(--font-mono, monospace)",
+                    fontSize: 10,
+                    padding: "2px 7px",
+                    borderRadius: 4,
+                    border: "1px solid var(--border)",
+                    background: "transparent",
+                    color: "var(--text-secondary)",
+                    cursor: totalShares === 0 ? "not-allowed" : "pointer",
+                    opacity: totalShares === 0 ? 0.4 : 1,
+                    letterSpacing: "0.02em",
+                  }}
+                >
+                  {pct}%
+                </button>
+              ))}
+            </div>
+          </div>
           <div style={{ display: "flex", gap: 8 }}>
             <input
               type="text"
               placeholder="0"
               value={withdrawShares}
               onChange={(e) => setWithdrawShares(e.target.value)}
-              min="0"
             />
             <button
               className="btn btn-ghost"
@@ -147,16 +183,11 @@ export default function VariablePool() {
             onClick={handleHarvestYield}
             disabled={!!loading}
           >
-            {loading === "Harvest Yield" ? (
-              <div className="spinner" />
-            ) : (
-              "◎ Harvest Yield"
-            )}
+            {loading === "Harvest Yield" ? <div className="spinner" /> : "◎ Harvest Yield"}
           </button>
         </div>
       </div>
 
-      {/* Info footer */}
       <div
         style={{
           marginTop: 20,

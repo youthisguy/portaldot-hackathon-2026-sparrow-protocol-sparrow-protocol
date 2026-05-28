@@ -4,7 +4,7 @@ import { useChain } from "@/app/context/ChainContext";
 
 const SPARROWLEND_ADDRESS = "5EiRyzh5RK6GtPRNhJszYDM9JcsyAhNYqUc4bdaQSvGxc4nP";
 const SPARROWMARGIN_ADDRESS =
-  "5FsUocequHi7Pj4AhBXgL6cFSZJ1rPP663x1c4RbUD66HoMX";
+  "5Gg7Zo81UehoGZbeEgS2dmjZwiVaJEVQVPTqT8qVHHAGYa8W";
 const WS_ENDPOINT = "ws://127.0.0.1:9944";
 
 const FEATURES = [
