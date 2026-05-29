@@ -214,15 +214,8 @@ export default function ChartPanel() {
         })}
       </div>
 
-{/* ── Pool stats ── always visible */}
-<div
-  style={{
- 
-    display: "flex",
-    flexShrink: 0,
-    marginBottom:16
-  }}
->
+{/* ── Pool stats ──  */}
+<div className="pool-stats-grid" style={{ flexShrink: 0, marginBottom: 16 }}>
   {[
     {
       label: "Avail. Liquidity",

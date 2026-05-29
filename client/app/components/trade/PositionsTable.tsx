@@ -20,7 +20,7 @@ const token = {
 
 export default function PositionsTable() {
   const { positions, sendTx, loading } = useChain();
-  const HF_DISPLAY_OFFSET = 0.5;
+  const HF_DISPLAY_OFFSET = 1;
 
   if (positions.length === 0) {
     return (

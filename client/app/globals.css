@@ -726,3 +726,33 @@ tr:hover td { background: var(--bg-elevated); color: var(--text-primary); }
   letter-spacing: 0.03em;
 }
 
+.trade-panel-inner {
+  padding: 66px 136px;
+}
+
+@media (max-width: 768px) {
+  .trade-panel-inner {
+    padding: 12px;
+  }
+}
+
+.pool-stats-grid {
+  display: flex;
+}
+
+@media (max-width: 768px) {
+  .pool-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .pool-stat-item {
+    border-right: none !important;
+    border-bottom: 1px solid #2a2e32;
+  }
+
+ 
+  .pool-stat-item:nth-last-child(-n+2) {
+    border-bottom: none;
+  }
+}

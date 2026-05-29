@@ -16,7 +16,7 @@ interface PositionStatusData {
   isProfit: boolean;
   interest: bigint;
   collateralNow: bigint;
-  collateralNeeded: bigint; // extra needed to reach margin_call_hf; 0 if healthy
+  collateralNeeded: bigint;  
 }
 
 const STATUS_COLORS: Record<PositionStatus, string> = {
@@ -279,10 +279,10 @@ export default function TradePanel() {
   }
 
   return (
-    <div style={{ height: "100%", overflowY: "auto", padding: "66px 136px" }}>
+<div style={{ minHeight: "100%", overflowY: "auto" }} className="trade-panel-inner">
       <div style={{ display: "flex", flexDirection: "column" }}>
         {/* ── Long / Short tab bar ── */}
-        <div style={{ display: "flex", gap: 6, padding: "10px 10px" }}>
+        <div style={{ display: "flex", gap: 6, padding: "10px 0px" }}>
           {(["long", "short"] as TradeTab[]).map((tab) => {
             const isActive = activeTab === tab;
             const isLong = tab === "long";
@@ -320,7 +320,7 @@ export default function TradePanel() {
         {/* ── Card body ── */}
         <div
           style={{
-            padding: "16px",
+            padding: "18px 0px",
             display: "flex",
             flexDirection: "column",
             gap: 14,
