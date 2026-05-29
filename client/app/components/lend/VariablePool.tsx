@@ -175,7 +175,7 @@ export default function VariablePool() {
 
         {/* Harvest */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+          <div style={{ fontSize: 12, color: "var(--text-muted)", marginRight: "6px" }}>
             Yield accumulates each block. Harvest anytime.
           </div>
           <button
@@ -183,7 +183,7 @@ export default function VariablePool() {
             onClick={handleHarvestYield}
             disabled={!!loading}
           >
-            {loading === "Harvest Yield" ? <div className="spinner" /> : "◎ Harvest Yield"}
+            {loading === "Harvest Yield" ? <div className="spinner" /> : "Harvest Yield"}
           </button>
         </div>
       </div>
