@@ -49,6 +49,7 @@
 |---|---|
 | Blockchain platform | substrate-contracts-node (pallet-contracts v9+) / Portaldot |
 | Smart contract language | ink! 4.3 (Rust / WASM) |
+| Frontend framework      | Next.js 16 (React 19, TypeScript, Tailwind CSS)     |
 | Build tool | cargo-contract |
 | Other components | Native POT balance (no wrapped tokens), mock price oracle |
 
@@ -200,6 +201,11 @@ npm install
 npm run dev
 ```
 
+## Demo
+
+**Video Link:** `https://youtu.be/La3cF0vxsXA` 
+**Live demo Link:** `app-sparrow.vercel.app`  
+
 ## Roadmap
 
 ### Completed Features
@@ -222,7 +228,8 @@ npm run dev
 ## Team
 
 - **Team Name:** Sparrow Protocol
-- **Contact:** t.me/@youthisguy
+- **Members & roles:** Solo, Fullstack / Smart Contract dev
+- **Contact:** `https://t.me/@youthisguy`
 
 ---
 
